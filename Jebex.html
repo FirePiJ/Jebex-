@@ -1,0 +1,476 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Мой Кинотеатр (Android UI)</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json"> <!-- Ссылка на манифест PWA -->
+</head>
+<body>
+
+  <header>
+    <nav class="navbar">
+      <div class="logo">Мой Кинотеатр</div>
+      <div class="nav-icons">
+        <span class="material-symbols-outlined">search</span>
+        <span class="material-symbols-outlined">person</span>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <section class="movie-section">
+      <h2>Популярное сейчас</h2>
+      <div class="movie-slider"> <!-- Используем слайдер -->
+        <div class="movie-grid">
+          <!-- Здесь будут карточки фильмов (генерируются JS) -->
+        </div>
+      </div>
+    </section>
+
+    <section class="movie-section">
+      <h2>Комедии</h2>
+      <div class="movie-slider">
+        <div class="movie-grid">
+          <!-- Здесь будут карточки фильмов (генерируются JS) -->
+        </div>
+      </div>
+    </section>
+
+    <!-- Секция с сериалами -->
+    <section class="movie-section">
+      <h2>Сериалы</h2>
+      <div class="movie-slider">
+        <div class="movie-grid">
+          <!-- Здесь будут карточки сериалов (генерируются JS) -->
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <nav class="bottom-nav">
+      <a href="#"><span class="material-symbols-outlined">home</span>Главная</a>
+      <a href="#"><span class="material-symbols-outlined">movie</span>Фильмы</a>
+      <a href="#"><span class="material-symbols-outlined">tv</span>Сериалы</a>
+      <a href="#" id="profile-link"><span class="material-symbols-outlined">account_circle</span>Профиль</a>
+    </nav>
+  </footer>
+
+  <!-- Модальное окно для просмотра фильма/сериала -->
+  <div id="movie-modal" class="modal">
+    <span class="close">&times;</span>
+    <div class="modal-content">
+      <video id="movie-player" controls>
+        <source src="" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+      </video>
+      <h2 id="modal-title"></h2>
+      <p id="modal-genre"></p>
+      <p id="modal-description"></p>
+    </div>
+  </div>
+
+  <!-- Модальное окно для редактирования профиля -->
+  <div id="profile-modal" class="modal">
+    <span class="close">&times;</span>
+    <div class="modal-content">
+      <h2>Редактировать профиль</h2>
+      <label for="username">Имя пользователя:</label>
+      <input type="text" id="username" name="username"><br><br>
+
+      <label for="email">Email:</label>
+      <input type="email" id="email" name="email"><br><br>
+
+      <button id="save-profile">Сохранить</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+</body>
+</html><style>/* Общие стили */
+body {
+  font-family: 'Roboto', sans-serif; /* Используем шрифт Roboto */
+  background-color: #121212; /* Темный фон */
+  color: #fff;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Предотвращаем горизонтальную прокрутку */
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+/* Шапка (header) */
+header {
+  background-color: #212121; /* Темный цвет шапки */
+  padding: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  position: fixed; /* Фиксированная шапка */
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+}
+
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px;
+}
+
+.logo {
+  font-size: 1.5em;
+  font-weight: 500; /* Чуть менее жирный */
+}
+
+.nav-icons {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-icons span {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+/* Основной контент (main) */
+main {
+  padding: 60px 10px 10px; /* Отступ сверху, чтобы контент не перекрывался шапкой */
+}
+
+.movie-section {
+  margin-bottom: 20px;
+}
+
+.movie-section h2 {
+  font-size: 1.3em;
+  margin-bottom: 10px;
+  padding-left: 5px;
+}
+
+.movie-slider {
+  overflow-x: auto; /* Горизонтальная прокрутка */
+  white-space: nowrap; /* Предотвращает перенос строк */
+  padding-bottom: 10px; /*  Добавляем немного места снизу для тени */
+  -webkit-overflow-scrolling: touch; /* Плавная прокрутка на iOS */
+}
+
+.movie-slider::-webkit-scrollbar {
+  display: none; /* Скрываем полосу прокрутки в Chrome/Safari */
+}
+
+
+.movie-grid {
+  display: inline-flex; /*  Важно для горизонтального слайдера */
+  gap: 10px;
+  padding-left: 5px;
+  padding-right: 5px; /* Для симметрии с левым отступом */
+}
+
+.movie-card {
+  background-color: #212121; /* Темный цвет карточки */
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+  width: 150px; /* Фиксированная ширина */
+  flex: 0 0 auto; /* Предотвращает сжатие/растяжение карточек */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /*  Более выраженная тень */
+}
+
+.movie-card:hover {
+  transform: scale(1.05);
+}
+
+.movie-card img {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  aspect-ratio: 2/3;
+}
+
+.movie-card h3 {
+  padding: 8px;
+  font-size: 0.9em;
+  margin: 0;
+  white-space: nowrap; /* Предотвращает перенос строк в названии */
+  overflow: hidden;         /* Скрывает текст, выходящий за границы */
+  text-overflow: ellipsis; /* Добавляет многоточие */
+}
+
+/* Подвал (footer) */
+footer {
+  background-color: #212121;
+    position: fixed; /* Фиксированный подвал */
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.bottom-nav {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+}
+
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 0.7em;
+  opacity: 0.8;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.bottom-nav a:hover {
+  opacity: 1;
+}
+
+.bottom-nav span {
+  font-size: 20px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+
+/* Медиа-запросы для адаптивности */
+@media (min-width: 768px) {
+  .movie-grid {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); /* Увеличенные карточки на больших экранах */
+  }
+
+  .movie-card {
+    width: 180px;
+  }
+}
+
+/* Модальное окно (стили не изменились) */
+.modal {
+  display: none;
+  position: fixed;
+  z-index: 1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+.modal-content {
+  margin: auto;
+  display: block;
+  width: 90%; /* Увеличиваем ширину модального окна на мобильных */
+  max-width: 800px;
+  position: relative;
+  padding: 20px; /* Добавляем отступы внутри модального окна */
+}
+
+.modal-content h2 {
+  margin-top: 0; /* Убираем отступ сверху у заголовка */
+}
+
+.modal-content label {
+  display: block; /*  Метка на новой строке */
+  margin-bottom: 5px;
+}
+
+.modal-content input[type="text"],
+.modal-content input[type="email"] {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  border: 1px solid #444;
+  background-color: #333;
+  color: #fff;
+  border-radius: 4px;
+}
+
+.modal-content button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1em;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.modal-content button:hover {
+  background-color: #367c39;
+}
+
+
+.close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 30px; /* Уменьшаем размер кнопки закрытия */
+  font-weight: bold;
+  transition: 0.3s;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+#movie-player {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+}
+#movie-modal .modal-content {
+  display: flex;
+  flex-direction: column;
+}</style><script>
+document.addEventListener('DOMContentLoaded', () => {
+  const movieGridContainers = document.querySelectorAll('.movie-grid');
+  const modal = document.getElementById('movie-modal');
+  const moviePlayer = document.getElementById('movie-player');
+  const closeBtn = document.querySelectorAll('.close'); // Исправлено на querySelectorAll
+  const profileLink = document.getElementById('profile-link');
+  const profileModal = document.getElementById('profile-modal');
+  const saveProfileBtn = document.getElementById('save-profile');
+  const usernameInput = document.getElementById('username');
+  const emailInput = document.getElementById('email');
+
+  const modalTitle = document.getElementById('modal-title');
+  const modalGenre = document.getElementById('modal-genre');
+  const modalDescription = document.getElementById('modal-description');
+
+
+  // Данные о фильмах и сериалах (замените на свои)
+  const movies = [
+    { title: 'Play again', imageUrl: 'https://drive.google.com/file/d/17cg0SseK2wEF_B1m3YfyZiOEDWXKxDyH/view?usp=drivesdktext=Фильм+1', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', genre: 'Комедия', description: 'Описание фильма 1.' },
+    { title: 'Фильм 2', imageUrl: 'https://via.placeholder.com/200x300/00FF00/000000?text=Фильм+2', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', genre: 'Драма', description: 'Описание фильма 2.' },
+    { title: 'Фильм 3', imageUrl: 'https://via.placeholder.com/200x300/0000FF/FFFFFF?text=Фильм+3', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', genre: 'Боевик', description: 'Описание фильма 3.' },
+    { title: 'Фильм 4', imageUrl: 'https://via.placeholder.com/200x300/FFFF00/000000?text=Фильм+4', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4', genre: 'Триллер', description: 'Описание фильма 4.' },
+    { title: 'Фильм 5', imageUrl: 'https://via.placeholder.com/200x300/FF00FF/FFFFFF?text=Фильм+5', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4', genre: 'Фантастика', description: 'Описание фильма 5.' },
+    { title: 'Фильм 6', imageUrl: 'https://via.placeholder.com/200x300/CCCCCC/000000?text=Фильм+6', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', genre: 'Комедия', description: 'Описание фильма 6.' },
+    { title: 'Фильм 7', imageUrl: 'https://via.placeholder.com/200x300/888888/FFFFFF?text=Фильм+7', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', genre: 'Драма', description: 'Описание фильма 7.' },
+    { title: 'Фильм 8', imageUrl: 'https://via.placeholder.com/200x300/444444/FFFFFF?text=Фильм+8', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', genre: 'Боевик', description: 'Описание фильма 8.' },
+  ];
+
+  const series = [
+    { title: 'Сериал 1', imageUrl: 'https://via.placeholder.com/200x300/AAAAAA/000000?text=Сериал+1', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4', genre: 'Детектив', description: 'Описание сериала 1.' },
+    { title: 'Сериал 2', imageUrl: 'https://via.placeholder.com/200x300/BBBBBB/000000?text=Сериал+2', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4', genre: 'Комедия', description: 'Описание сериала 2.' },
+    { title: 'Сериал 3', imageUrl: 'https://via.placeholder.com/200x300/DDDDDD/000000?text=Сериал+3', videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4', genre: 'Фантастика', description: 'Описание сериала 3.' },
+  ];
+
+  // Функция для создания карточки фильма/сериала
+  function createMovieCard(item) {
+    const movieCard = document.createElement('div');
+    movieCard.classList.add('movie-card');
+
+    const img = document.createElement('img');
+    img.src = item.imageUrl;
+    img.alt = item.title;
+
+    const title = document.createElement('h3');
+    title.textContent = item.title;
+
+    movieCard.appendChild(img);
+    movieCard.appendChild(title);
+
+    movieCard.addEventListener('click', () => {
+      openMedia(item); // Передаем объект целиком
+    });
+
+    return movieCard;
+  }
+
+  // Функция открытия модального окна с фильмом/сериалом
+  function openMedia(item) {
+    moviePlayer.src = item.videoUrl;
+    modalTitle.textContent = item.title;
+    modalGenre.textContent = `Жанр: ${item.genre}`;
+    modalDescription.textContent = item.description;
+
+    modal.style.display = "block";
+    moviePlayer.play();
+  }
+
+  // Функция закрытия модального окна
+  closeBtn.forEach(btn => { // Обрабатываем все кнопки закрытия
+    btn.addEventListener('click', (event) => {
+      const modalToClose = event.target.closest('.modal'); // Находим родительский модальный элемент
+      if (modalToClose) {
+        modalToClose.style.display = "none";
+
+        // Дополнительная остановка видео, если это модальное окно фильма
+        if (modalToClose.id === 'movie-modal') {
+          moviePlayer.pause();
+          moviePlayer.currentTime = 0;
+        }
+      }
+    });
+  });
+
+
+  // Закрытие модального окна при клике вне его
+  window.addEventListener('click', (event) => {
+    if (event.target.classList.contains('modal')) {
+      event.target.style.display = "none";
+      if (event.target.id === 'movie-modal') {
+        moviePlayer.pause();
+        moviePlayer.currentTime = 0;
+      }
+    }
+  });
+
+  // Заполнение секций фильмами и сериалами
+  movieGridContainers.forEach(container => {
+    if (container.closest('.movie-section').querySelector('h2').textContent === 'Сериалы') {
+      series.forEach(item => {
+        const movieCard = createMovieCard(item);
+        container.appendChild(movieCard);
+      });
+    } else {
+      movies.forEach(movie => {
+        const movieCard = createMovieCard(movie);
+        container.appendChild(movieCard);
+      });
+    }
+  });
+
+  // Обработчик для открытия модального окна профиля
+  profileLink.addEventListener('click', (e) => {
+    e.preventDefault(); // Предотвращаем переход по ссылке
+    profileModal.style.display = "block";
+
+    // Заполнение полей формы (можно заменить на получение данных из localStorage или API)
+    usernameInput.value = localStorage.getItem('username') || '';
+    emailInput.value = localStorage.getItem('email') || '';
+  });
+
+  // Обработчик для сохранения профиля
+  saveProfileBtn.addEventListener('click', () => {
+    const username = usernameInput.value;
+    const email = emailInput.value;
+
+    // Здесь можно добавить валидацию данных
+
+    // Сохранение данных (например, в localStorage)
+    localStorage.setItem('username', username);
+    localStorage.setItem('email', email);
+
+    alert('Профиль сохранен!'); // Простое уведомление
+    profileModal.style.display = "none";
+  });
+});
+</script>
